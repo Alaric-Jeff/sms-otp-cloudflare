@@ -1,0 +1,12 @@
+name = "your-worker-name"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Your variables here
+
+# Add your secrets with: wrangler secret put TWILIO_ACCOUNT_SID
+# wrangler secret put TWILIO_AUTH_TOKEN
+# wrangler secret put TWILIO_VERIFY_SERVICE_SID
+# wrangler secret put FIREBASE_SERVICE_ACCOUNT

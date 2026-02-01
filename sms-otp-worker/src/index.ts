@@ -37,8 +37,8 @@ export default {
         const response = {
           status: iprogRes.status ?? 'success',
           message: iprogRes.message ?? 'OTP sent successfully',
-          otp_code: iprogRes.otp_code,
-          otp_code_expires_at: iprogRes.otp_code_expires_at
+          otp_code: iprogRes.otp_code ?? null,
+          otp_code_expires_at: iprogRes.otp_code_expires_at ?? null
         }
 
         return Response.json(response)
@@ -51,13 +51,11 @@ export default {
         const response = {
           status: iprogRes.status ?? 'success',
           message: iprogRes.message ?? 'OTP verified successfully',
-          data: iprogRes.data ?? [
-            {
-              phone_number: body.phone_number,
-              otp_code: body.otp,
-              expired_at: iprogRes.expired_at ?? null
-            }
-          ]
+          data: iprogRes.data ?? {
+            phone_number: body.phone_number,
+            otp_code: body.otp,
+            expired_at: iprogRes.expired_at ?? null
+          }
         }
 
         return Response.json(response)
@@ -65,18 +63,18 @@ export default {
 
       return new Response('Invalid action', { status: 400 })
     } catch (err) {
-      console.log(err)
+      console.error(err)
       return new Response('Internal Server Error', { status: 500 })
     }
   },
-}
+} satisfies ExportedHandler<Env>
 
 type IprogSendResponse = {
   status?: string
   message?: string
   otp_code?: string | null
   otp_code_expires_at?: string | null
-  [key: string]: any
+  [key: string]: unknown
 }
 
 async function sendOtp(
@@ -92,7 +90,7 @@ async function sendOtp(
     body: JSON.stringify({
       api_token: env.IPROGSMS_API,
       phone_number,
-      message: message?.trim() ? message : undefined, // optional
+      ...(message?.trim() && { message }), // only include if truthy
     }),
   })
 
@@ -100,16 +98,15 @@ async function sendOtp(
     throw new Error(`Send OTP failed: ${res.status}`)
   }
 
-  const json = await res.json()
-  return json as IprogSendResponse
+  return await res.json() as IprogSendResponse
 }
 
 type IprogVerifyResponse = {
   status?: string
   message?: string
-  data?: any
+  data?: unknown
   expired_at?: string | null
-  [key: string]: any
+  [key: string]: unknown
 }
 
 async function verifyOtp(
@@ -133,6 +130,5 @@ async function verifyOtp(
     throw new Error(`Verify OTP failed: ${res.status}`)
   }
 
-  const json = await res.json()
-  return json as IprogVerifyResponse
+  return await res.json() as IprogVerifyResponse
 }
